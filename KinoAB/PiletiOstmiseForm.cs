@@ -8,6 +8,8 @@ namespace KinoAB
 {
     public partial class PiletiOstmiseForm : Form
     {
+        string seanss_start;
+        string seanss_lopp;
         string posterFilePath;  // Полный путь к постеру
         string movieTitle;  // Название фильма
 
@@ -31,11 +33,13 @@ namespace KinoAB
         Button btn;
         Button selectedSeatButton;  // Кнопка выбранного места
 
-        public PiletiOstmiseForm(string _movieTitle, string _posterFilePath)
+        public PiletiOstmiseForm(string _movieTitle, string _posterFilePath, string _seanss_start, string _seanss_lopp)
         {
             InitializeComponent();
             movieTitle = _movieTitle;
             posterFilePath = _posterFilePath;
+            seanss_start = _seanss_start;
+            seanss_lopp = _seanss_lopp;
 
             buttons = new List<Button>();
 
@@ -71,7 +75,7 @@ namespace KinoAB
                 string selectedSeat = selectedSeatButton.Text;
 
                 // Создаем форму для отображения PDF и отправки на почту
-                PDFForm pdfForm = new PDFForm(movieTitle, posterFilePath, selectedSeat);
+                PDFForm pdfForm = new PDFForm(movieTitle, posterFilePath, selectedSeat, seanss_start, seanss_lopp);
                 pdfForm.Show();
             }
             else

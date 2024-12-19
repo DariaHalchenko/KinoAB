@@ -14,12 +14,17 @@ namespace KinoAB
 {
     public partial class KinoForm : Form
     {
+        string movieId;
+        string seanss_start;
+        string seanss_lopp;
         string posterFileName;
         string movieTitle;
         string posterPath;
         string postersDirectory = Path.Combine(Application.StartupPath, "../../Poster");
 
-        SqlConnection conn = new SqlConnection($@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\opilane\source\repos\KinoAB\KinoAB\Kino.mdf;Integrated Security=True");
+        static string projectRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\"));
+        static string db_path = Path.Combine(projectRoot, "Kino.mdf");
+        SqlConnection conn = new SqlConnection($@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={db_path};Integrated Security=True");
 
         SqlCommand cmd;
         SqlDataReader reader;
@@ -84,7 +89,7 @@ namespace KinoAB
                 {
                     // Открываем соединение с базой данных
                     conn.Open();
-                    cmd = new SqlCommand("SELECT Poster, Filmi_nimetus FROM Kinolaud", conn);
+                    cmd = new SqlCommand("SELECT Id, Poster, Filmi_nimetus FROM Kinolaud", conn);
                     reader = cmd.ExecuteReader();
 
                     while (reader.Read())
@@ -146,14 +151,45 @@ namespace KinoAB
                     praegune_indeks = 0; // Вернуться к первой картинке, если дошли до конца
                 }
                 pictureBox.Image = posters[praegune_indeks];
-                movieTitleLabel.Text = movieTitles[praegune_indeks];  // Обновляем название фильма
+                movieTitleLabel.Text = movieTitles[praegune_indeks];  
+                movieTitle = movieTitleLabel.Text;
+                posterPath = Path.Combine(postersDirectory, $"{movieTitle}.jpg");
+
+                try
+                {
+                    conn.Open();
+                    // Запрос для получения ID фильма по названию с использованием параметризированного запроса
+                    cmd = new SqlCommand("SELECT Id FROM Kinolaud WHERE Filmi_nimetus = @movieTitle", conn);
+                    cmd.Parameters.AddWithValue("@movieTitle", movieTitle);
+                    movieId = cmd.ExecuteScalar().ToString();
+
+                    // Получаем данные сеанса
+                    cmd = new SqlCommand("SELECT * FROM seansid WHERE Kinolaud_id = @movieId", conn);
+                    cmd.Parameters.AddWithValue("@movieId", movieId);
+                    reader = cmd.ExecuteReader();
+
+                    if (reader.Read())
+                    {
+                        seanss_start = reader["Start_time"].ToString();
+                        seanss_lopp = reader["Lopp_aeg"].ToString();
+                    }
+                    reader.Close();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Ошибка при загрузке данных из базы: " + ex.Message);
+                }
+                finally
+                {
+                    conn.Close();
+                }
             }
         }
 
         private void Btn2_Click(object sender, EventArgs e)
         {
             // Открываем форму выбора мест
-            PiletiOstmiseForm ticketForm = new PiletiOstmiseForm(movieTitle, posterPath);
+            PiletiOstmiseForm ticketForm = new PiletiOstmiseForm(movieTitle, posterPath, seanss_start, seanss_lopp);
             ticketForm.Show();
         }
     }

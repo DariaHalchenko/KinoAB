@@ -27,15 +27,15 @@ namespace KinoAB
         // Генерация PDF файла
         private void GeneratePDF(string movieTitle, string posterFilePath, string selectedSeat)
         {
-            string pdfFilePath = @"..\..\Arve.pdf"; // Путь к файлу PDF
+            string pdfFilePath = @"..\..\Pilet.pdf"; // Путь к файлу PDF
 
             // Создаем документ PDF
             Document pdfDocument = new Document();
             var page = pdfDocument.Pages.Add();
 
             // Заголовок
-            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment($"Фильм: {movieTitle}"));
-            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment($"Место: {selectedSeat}"));
+            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment($"Filmi: {movieTitle}"));
+            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment($"Kohad: {selectedSeat}"));
 
             // Добавляем постер
             if (File.Exists(posterFilePath))
@@ -51,8 +51,8 @@ namespace KinoAB
             pdfDocument.Save(pdfFilePath);
 
             // После генерации PDF отправляем на почту
-            SendEmail("recipient-email@example.com", "Ваш билет в кино", 
-                $"Здравствуйте!\n\nВы купили билет на фильм '{movieTitle}'.\nВаше место: {selectedSeat}.", 
+            SendEmail("recipient-email@example.com", "Sinu kinopilet", 
+                $"Tere!\n\nOstsite filmi pileti '{movieTitle}'.\nSinu koht: {selectedSeat}.", 
                 pdfFilePath);
         }
 
@@ -65,14 +65,14 @@ namespace KinoAB
                 SmtpClient smtpClient = new SmtpClient("smtp.gmail.com")
                 {
                     Port = 587,
-                    Credentials = new NetworkCredential("your-email@gmail.com", "your-email-password"), // Введите свои данные
+                    Credentials = new NetworkCredential("daragalcenko3@gmail.com", "iqer zkvm czuv Igqn"), 
                     EnableSsl = true
                 };
 
                 // Создаем письмо
                 MailMessage mailMessage = new MailMessage
                 {
-                    From = new MailAddress("your-email@gmail.com"), // Ваш email
+                    From = new MailAddress("daragalcenko3@gmail.com"), // Ваш email
                     Subject = subject,
                     Body = body,
                     IsBodyHtml = true // Если тело письма в формате HTML

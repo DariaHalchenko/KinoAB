@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Net;
@@ -12,7 +13,7 @@ namespace KinoAB
     {
         string filmiNimetus;
         string posterFile;
-        string ValiKoht;
+        List<string> valitudKohad; // Список для хранения выбранных мест
         string seanss_start;
         string pdfFilePath = @"..\..\Pilet.pdf"; // Путь к файлу PDF
 
@@ -22,12 +23,12 @@ namespace KinoAB
         SmtpClient smtpClient;
         MailMessage mailMessage;
 
-        public PDFForm(string filminimetus, string posterfile, string valikoht, string seanss_start)
+        public PDFForm(string filminimetus, string posterfile, List<string> valitudKohad, string seanss_start)
         {
             InitializeComponent();
             this.filmiNimetus = filminimetus;
             this.posterFile = posterfile;
-            this.ValiKoht = valikoht;
+            this.valitudKohad = valitudKohad; // Сохраняем список выбранных мест
             this.seanss_start = seanss_start;
 
             email_lbl = new Label();
@@ -44,9 +45,14 @@ namespace KinoAB
             salvesta_btn.Location = new System.Drawing.Point(20, 100);
             salvesta_btn.Size = new Size(200, 30);
 
-            salvesta_btn.Click += (sender, e) => SendEmail(email_txt.Text, "Sinu kinopilet",
-                $"Tere!\n\nOstsite filmi pileti '{filmiNimetus}'.\nSinu koht: {valikoht}.",
-                pdfFilePath);
+            salvesta_btn.Click += (sender, e) =>
+            {
+                string valitudKohadTekst = string.Join(", ", valitudKohad);
+                string emailBody = $"Tere!\n\nOstsite filmi pileti '{filmiNimetus}'.\nSinu kohad: {valitudKohadTekst}.";
+
+                SendEmail(email_txt.Text, "Sinu kinopilet", emailBody, pdfFilePath);
+            };
+
             Controls.Add(email_lbl);
             Controls.Add(email_txt);
             Controls.Add(salvesta_btn);
@@ -63,7 +69,11 @@ namespace KinoAB
 
             // Заголовок
             page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment($"Filmi: {filmiNimetus}"));
-            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment($"Kohad: {ValiKoht}"));
+
+            // Добавляем информацию о местах
+            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment($"Kohad: {string.Join(", ", valitudKohad)}"));
+
+            // Добавляем информацию о сеансе
             page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment($"Seansi algus: {seanss_start}"));
 
             // Добавляем постер
@@ -80,8 +90,8 @@ namespace KinoAB
             pdfDocument.Save(pdfFilePath);
         }
 
-        // Метод для отправки email с вложением (PDF файл), saaja_meiliaadress- адрес жлектронной почты получателя, manusfaili_tee путь к файлу вложения
-        private void SendEmail(string saaja_meiliaadress, string subject, string body, string manusfaili_tee) 
+        // Метод для отправки email с вложением (PDF файл)
+        private void SendEmail(string saaja_meiliaadress, string subject, string body, string manusfaili_tee)
         {
             try
             {
@@ -106,7 +116,7 @@ namespace KinoAB
 
                 // Отправляем письмо
                 smtpClient.Send(mailMessage);
-                
+
                 MessageBox.Show("Pilet edukalt saadetud postkontorisse");
             }
             catch (Exception ex)
@@ -116,4 +126,3 @@ namespace KinoAB
         }
     }
 }
-

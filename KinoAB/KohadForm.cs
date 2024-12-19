@@ -255,4 +255,4 @@ namespace KinoAB
             koht_txt.Text = dataGridView.Rows[e.RowIndex].Cells["Kohanumber"].Value.ToString();
         }
     }
-}
+} 

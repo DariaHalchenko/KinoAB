@@ -241,4 +241,4 @@ namespace KinoAB
             kohad_cb.Text = dataGridView.Rows[e.RowIndex].Cells[3].Value.ToString();
         }
     }
-} 
+}

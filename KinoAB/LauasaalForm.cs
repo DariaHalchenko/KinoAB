@@ -250,4 +250,4 @@ namespace KinoAB
             kohad_reas_txt.Text = dataGridView.Rows[e.RowIndex].Cells["Kohad_reas"].Value.ToString();
         }
     }
-} 
+}

@@ -191,5 +191,4 @@ namespace KinoAB
             ticketForm.Show();
         }
     }
-}
-
+} 

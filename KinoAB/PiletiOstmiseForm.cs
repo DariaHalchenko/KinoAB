@@ -9,9 +9,8 @@ namespace KinoAB
     public partial class PiletiOstmiseForm : Form
     {
         string seanss_start;
-        string seanss_lopp;
-        string posterFilePath;  // Полный путь к постеру
-        string movieTitle;  // Название фильма
+        string posterFile;  // Полный путь к постеру
+        string filmiNimetus;  // Название фильма
 
         Random random = new Random();
         Button osta_pilet;
@@ -31,15 +30,14 @@ namespace KinoAB
         private List<Button> buttons; // Список кнопок для мест
         private KinoSaal kinosaal; // Один зал с фиксированными размерами
         Button btn;
-        Button selectedSeatButton;  // Кнопка выбранного места
+        Button vali_koht;  // Кнопка выбранного места
 
-        public PiletiOstmiseForm(string _movieTitle, string _posterFilePath, string _seanss_start, string _seanss_lopp)
+        public PiletiOstmiseForm(string _filminimetus, string _posterFile, string _seanss_start)
         {
             InitializeComponent();
-            movieTitle = _movieTitle;
-            posterFilePath = _posterFilePath;
+            filmiNimetus = _filminimetus;
+            posterFile = _posterFile;
             seanss_start = _seanss_start;
-            seanss_lopp = _seanss_lopp;
 
             buttons = new List<Button>();
 
@@ -57,7 +55,7 @@ namespace KinoAB
                 // Создаем кнопку для покупки билета
                 osta_pilet = new Button();
                 osta_pilet.Size = new Size(150, 50);
-                osta_pilet.Location = new Point(700, 800);  // Устанавливаем расположение
+                osta_pilet.Location = new Point(600, 700);  
                 osta_pilet.Text = "Osta pilet";
                 osta_pilet.Font = new Font("Arial", 12, FontStyle.Bold);
                 osta_pilet.BackColor = Color.Blue;
@@ -69,18 +67,18 @@ namespace KinoAB
 
         private void Osta_pilet_Click(object sender, EventArgs e)
         {
-            if (selectedSeatButton != null)
+            if (vali_koht != null)
             {
                 // Получаем название места (например, "1-1")
-                string selectedSeat = selectedSeatButton.Text;
+                string ValiKoht = vali_koht.Text;
 
                 // Создаем форму для отображения PDF и отправки на почту
-                PDFForm pdfForm = new PDFForm(movieTitle, posterFilePath, selectedSeat, seanss_start, seanss_lopp);
+                PDFForm pdfForm = new PDFForm(filmiNimetus, posterFile, ValiKoht, seanss_start);
                 pdfForm.Show();
             }
             else
             {
-                MessageBox.Show("Пожалуйста, выберите место перед покупкой билета.");
+                MessageBox.Show("Palun valige oma koht enne pileti ostmist");
             }
         }
 
@@ -118,17 +116,17 @@ namespace KinoAB
         {
             Button clickedButton = sender as Button;
 
-            if (clickedButton.Tag.ToString() == "available")
+            if (clickedButton.Tag.ToString() == "vabaruumi")
             {
                 clickedButton.BackColor = Color.Red;  // Забронировать место (красное)
-                clickedButton.Tag = "booked";  // Изменяем статус места
-                selectedSeatButton = clickedButton;  // Запоминаем выбранное место
+                clickedButton.Tag = "broneeritud";  // Изменяем статус места
+                vali_koht = clickedButton;  // Запоминаем выбранное место
             }
             else
             {
                 clickedButton.BackColor = Color.Green;  // Освободить место (зеленое)
-                clickedButton.Tag = "available";  // Изменяем статус места
-                selectedSeatButton = null;  // Если место освобождается, очищаем выбранное место
+                clickedButton.Tag = "vabaruumi";  // Изменяем статус места
+                vali_koht = null;  // Если место освобождается, очищаем выбранное место
             }
         }
 
@@ -147,10 +145,10 @@ namespace KinoAB
                 Button btn = buttons.FirstOrDefault(b => b.Name == $"Btn-{rida + 1}-{koht + 1}");
 
                 // Если место еще не забронировано, бронируем его
-                if (btn != null && btn.Tag.ToString() == "available")
+                if (btn != null && btn.Tag.ToString() == "vabaruumi")
                 {
                     btn.BackColor = Color.Red;  // Забронировать место (красное)
-                    btn.Tag = "booked";  // Изменяем статус места
+                    btn.Tag = "broneeritud";  // Изменяем статус места
                 }
                 else
                 {

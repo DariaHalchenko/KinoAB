@@ -14,11 +14,10 @@ namespace KinoAB
 {
     public partial class KinoForm : Form
     {
-        string movieId;
+        string filmiId;
         string seanss_start;
-        string seanss_lopp;
-        string posterFileName;
-        string movieTitle;
+        string posterFile;
+        string filmiNimetus;
         string posterPath;
         string postersDirectory = Path.Combine(Application.StartupPath, "../../Poster");
 
@@ -30,9 +29,9 @@ namespace KinoAB
         SqlDataReader reader;
         Button btn1, btn2;
         PictureBox pictureBox;
-        Label movieTitleLabel;  // Добавим метку для названия фильма
+        Label filmi_nimetus_lbl;  // Добавим метку для названия фильма
         List<Image> posters;
-        List<string> movieTitles;  // Список для хранения названий фильмов
+        List<string> filmiNimetuss;  // Список для хранения названий фильмов
         int praegune_indeks;
 
         public KinoForm()
@@ -67,12 +66,12 @@ namespace KinoAB
             Controls.Add(pictureBox);
 
             // Создаем и добавляем метку для названия фильма
-            movieTitleLabel = new Label();
-            movieTitleLabel.Size = new Size(327, 50);
-            movieTitleLabel.Location = new Point(442, 450);
-            movieTitleLabel.Font = new Font("Algerian", 14, FontStyle.Italic);
-            movieTitleLabel.TextAlign = ContentAlignment.MiddleCenter;
-            Controls.Add(movieTitleLabel);
+            filmi_nimetus_lbl = new Label();
+            filmi_nimetus_lbl.Size = new Size(327, 50);
+            filmi_nimetus_lbl.Location = new Point(442, 450);
+            filmi_nimetus_lbl.Font = new Font("Algerian", 14, FontStyle.Italic);
+            filmi_nimetus_lbl.TextAlign = ContentAlignment.MiddleCenter;
+            Controls.Add(filmi_nimetus_lbl);
 
             NaitaAndmedPoster();
         }
@@ -80,7 +79,7 @@ namespace KinoAB
         private void NaitaAndmedPoster()
         {
             posters = new List<Image>();
-            movieTitles = new List<string>();  // Инициализируем список для названий фильмов
+            filmiNimetuss = new List<string>();  // Инициализируем список для названий фильмов
 
             // Проверяем, существует ли папка Poster
             if (Directory.Exists(postersDirectory))
@@ -94,19 +93,19 @@ namespace KinoAB
 
                     while (reader.Read())
                     {
-                        posterFileName = reader["Poster"].ToString();
-                        movieTitle = reader["Filmi_nimetus"].ToString();
-                        posterPath = Path.Combine(postersDirectory, posterFileName);
+                        posterFile = reader["Poster"].ToString();
+                        filmiNimetus = reader["Filmi_nimetus"].ToString();
+                        posterPath = Path.Combine(postersDirectory, posterFile);
 
                         // Проверяем, существует ли файл изображения в папке Poster
                         if (File.Exists(posterPath))
                         {
                             posters.Add(Image.FromFile(posterPath));
-                            movieTitles.Add(movieTitle);  // Добавляем название фильма в список
+                            filmiNimetuss.Add(filmiNimetus);  // Добавляем название фильма в список
                         }
                         else
                         {
-                            MessageBox.Show($"Изображение '{posterFileName}' не найдено в папке Poster.");
+                            MessageBox.Show($"Pilt '{posterFile}' ei leitud Poster kaustast");
                         }
                     }
 
@@ -118,16 +117,16 @@ namespace KinoAB
                     {
                         praegune_indeks = 0;
                         pictureBox.Image = posters[praegune_indeks];
-                        movieTitleLabel.Text = movieTitles[praegune_indeks];  // Обновляем название фильма
+                        filmi_nimetus_lbl.Text = filmiNimetuss[praegune_indeks];  // Обновляем название фильма
                     }
                     else
                     {
-                        MessageBox.Show("В таблице Kinolaud нет доступных изображений.");
+                        MessageBox.Show("Kinolaud'i tabelis ei ole ühtegi pilti");
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Ошибка при загрузке изображений: " + ex.Message);
+                    MessageBox.Show("Viga piltide üleslaadimisel: " + ex.Message);
                     if (conn.State == System.Data.ConnectionState.Open)
                     {
                         conn.Close();
@@ -136,7 +135,7 @@ namespace KinoAB
             }
             else
             {
-                MessageBox.Show("Папка Poster не найдена.");
+                MessageBox.Show("Plakatikausta ei leitud");
             }
         }
 
@@ -151,33 +150,32 @@ namespace KinoAB
                     praegune_indeks = 0; // Вернуться к первой картинке, если дошли до конца
                 }
                 pictureBox.Image = posters[praegune_indeks];
-                movieTitleLabel.Text = movieTitles[praegune_indeks];  
-                movieTitle = movieTitleLabel.Text;
-                posterPath = Path.Combine(postersDirectory, $"{movieTitle}.jpg");
+                filmi_nimetus_lbl.Text = filmiNimetuss[praegune_indeks];
+                filmiNimetus = filmi_nimetus_lbl.Text;
+                posterPath = Path.Combine(postersDirectory, $"{filmiNimetus}.jpg");
 
                 try
                 {
                     conn.Open();
                     // Запрос для получения ID фильма по названию с использованием параметризированного запроса
-                    cmd = new SqlCommand("SELECT Id FROM Kinolaud WHERE Filmi_nimetus = @movieTitle", conn);
-                    cmd.Parameters.AddWithValue("@movieTitle", movieTitle);
-                    movieId = cmd.ExecuteScalar().ToString();
+                    cmd = new SqlCommand("SELECT Id FROM Kinolaud WHERE Filmi_nimetus = @filmiNimetus", conn);
+                    cmd.Parameters.AddWithValue("@filmiNimetus", filmiNimetus);
+                    filmiId = cmd.ExecuteScalar().ToString();
 
                     // Получаем данные сеанса
-                    cmd = new SqlCommand("SELECT * FROM seansid WHERE Kinolaud_id = @movieId", conn);
-                    cmd.Parameters.AddWithValue("@movieId", movieId);
+                    cmd = new SqlCommand("SELECT * FROM seansid WHERE Kinolaud_id = @filmiId", conn);
+                    cmd.Parameters.AddWithValue("@filmiId", filmiId);
                     reader = cmd.ExecuteReader();
 
                     if (reader.Read())
                     {
                         seanss_start = reader["Start_time"].ToString();
-                        seanss_lopp = reader["Lopp_aeg"].ToString();
                     }
                     reader.Close();
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Ошибка при загрузке данных из базы: " + ex.Message);
+                    MessageBox.Show("Viga andmete laadimisel andmebaasist: " + ex.Message);
                 }
                 finally
                 {
@@ -189,7 +187,7 @@ namespace KinoAB
         private void Btn2_Click(object sender, EventArgs e)
         {
             // Открываем форму выбора мест
-            PiletiOstmiseForm ticketForm = new PiletiOstmiseForm(movieTitle, posterPath, seanss_start, seanss_lopp);
+            PiletiOstmiseForm ticketForm = new PiletiOstmiseForm(filmiNimetus, posterPath, seanss_start);
             ticketForm.Show();
         }
     }

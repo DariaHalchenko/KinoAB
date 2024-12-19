@@ -10,11 +10,10 @@ namespace KinoAB
 {
     public partial class PDFForm : Form
     {
-        string movieTitle;
-        string posterFilePath;
-        string selectedSeat;
+        string filmiNimetus;
+        string posterFile;
+        string ValiKoht;
         string seanss_start;
-        string seanss_lopp;
         string pdfFilePath = @"..\..\Pilet.pdf"; // Путь к файлу PDF
 
         Label email_lbl;
@@ -23,13 +22,12 @@ namespace KinoAB
         SmtpClient smtpClient;
         MailMessage mailMessage;
 
-        public PDFForm(string movieTitle, string posterFilePath, string selectedSeat, string seanss_start, string seanss_lopp)
+        public PDFForm(string filminimetus, string posterfile, string valikoht, string seanss_start)
         {
             InitializeComponent();
-            this.movieTitle = movieTitle;
-            this.posterFilePath = posterFilePath;
-            this.selectedSeat = selectedSeat;
-            this.seanss_lopp = seanss_lopp;
+            this.filmiNimetus = filminimetus;
+            this.posterFile = posterfile;
+            this.ValiKoht = valikoht;
             this.seanss_start = seanss_start;
 
             email_lbl = new Label();
@@ -47,7 +45,7 @@ namespace KinoAB
             salvesta_btn.Size = new Size(200, 30);
 
             salvesta_btn.Click += (sender, e) => SendEmail(email_txt.Text, "Sinu kinopilet",
-                $"Tere!\n\nOstsite filmi pileti '{movieTitle}'.\nSinu koht: {selectedSeat}.",
+                $"Tere!\n\nOstsite filmi pileti '{filmiNimetus}'.\nSinu koht: {valikoht}.",
                 pdfFilePath);
             Controls.Add(email_lbl);
             Controls.Add(email_txt);
@@ -64,17 +62,16 @@ namespace KinoAB
             var page = pdfDocument.Pages.Add();
 
             // Заголовок
-            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment($"Filmi: {movieTitle}"));
-            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment($"Kohad: {selectedSeat}"));
+            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment($"Filmi: {filmiNimetus}"));
+            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment($"Kohad: {ValiKoht}"));
             page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment($"Seansi algus: {seanss_start}"));
-            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment($"Seansi lõpp: {seanss_lopp}"));
 
             // Добавляем постер
-            if (File.Exists(posterFilePath))
+            if (File.Exists(posterFile))
             {
                 Aspose.Pdf.Image image = new Aspose.Pdf.Image
                 {
-                    File = posterFilePath
+                    File = posterFile
                 };
                 page.Paragraphs.Add(image);
             }
@@ -83,42 +80,38 @@ namespace KinoAB
             pdfDocument.Save(pdfFilePath);
         }
 
-        // Метод для отправки email с вложением (PDF файл)
-        private void SendEmail(string recipientEmail, string subject, string body, string attachmentFilePath)
+        // Метод для отправки email с вложением (PDF файл), saaja_meiliaadress- адрес жлектронной почты получателя, manusfaili_tee путь к файлу вложения
+        private void SendEmail(string saaja_meiliaadress, string subject, string body, string manusfaili_tee) 
         {
             try
             {
                 // Указываем SMTP сервер (например, для Gmail)
-                SmtpClient smtpClient = new SmtpClient("smtp.gmail.com")
-                {
-                    Port = 587,
-                    Credentials = new NetworkCredential("daragalcenko3@gmail.com", "iqer zkvm czuv lgqn"), 
-                    EnableSsl = true
-                };
+                smtpClient = new SmtpClient("smtp.gmail.com");
+                smtpClient.Port = 587;
+                smtpClient.Credentials = new NetworkCredential("daragalcenko3@gmail.com", "iqer zkvm czuv lgqn");
+                smtpClient.EnableSsl = true;
 
                 // Создаем письмо
-                MailMessage mailMessage = new MailMessage
-                {
-                    From = new MailAddress("daragalcenko3@gmail.com"), // Ваш email
-                    Subject = subject,
-                    Body = body,
-                    IsBodyHtml = true // Если тело письма в формате HTML
-                };
+                mailMessage = new MailMessage();
+                mailMessage.From = new MailAddress("daragalcenko3@gmail.com");
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.IsBodyHtml = true; // Если тело письма в формате HTML
 
                 // Добавляем получателя
-                mailMessage.To.Add(recipientEmail);
+                mailMessage.To.Add(saaja_meiliaadress);
 
                 // Добавляем вложение (PDF файл)
-                mailMessage.Attachments.Add(new Attachment(attachmentFilePath));
+                mailMessage.Attachments.Add(new Attachment(manusfaili_tee));
 
                 // Отправляем письмо
                 smtpClient.Send(mailMessage);
                 
-                MessageBox.Show("Билет успешно отправлен на почту.");
+                MessageBox.Show("Pilet edukalt saadetud postkontorisse");
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Ошибка при отправке письма: " + ex.Message);
+                MessageBox.Show("Viga e-kirja saatmisel: " + ex.Message);
             }
         }
     }

@@ -1,11 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace KinoAB
@@ -74,13 +70,13 @@ namespace KinoAB
                 // Получаем название места (например, "1-1")
                 string selectedSeat = selectedSeatButton.Text;
 
-                // Создаем форму для отображения PDF, передавая необходимые данные
-                PDFForm pdf = new PDFForm(movieTitle, posterFilePath, selectedSeat);
-                pdf.Show();
+                // Создаем форму для отображения PDF и отправки на почту
+                PDFForm pdfForm = new PDFForm(movieTitle, posterFilePath, selectedSeat);
+                pdfForm.Show();
             }
             else
             {
-                MessageBox.Show("Palun valige koht enne pileti ostmist.");
+                MessageBox.Show("Пожалуйста, выберите место перед покупкой билета.");
             }
         }
 

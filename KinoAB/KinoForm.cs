@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -20,6 +21,7 @@ namespace KinoAB
         string filmiNimetus;
         string posterPath;
         string postersDirectory = Path.Combine(Application.StartupPath, "../../Poster");
+        private List<string> valitudKohad;
 
         static string projectRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\"));
         static string db_path = Path.Combine(projectRoot, "Kino.mdf");
@@ -49,7 +51,7 @@ namespace KinoAB
             btn1.Font = new Font("Algerian", 18, FontStyle.Italic);
             btn1.Click += Btn1_Click;
             Controls.Add(btn1);
-
+            valitudKohad = new List<string>();
             btn2 = new Button();
             btn2.Text = "Osta pilet";
             btn2.Size = new Size(152, 55);
@@ -64,7 +66,7 @@ namespace KinoAB
             pictureBox.Size = new Size(327, 359);
             pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
             Controls.Add(pictureBox);
-
+                
             // Создаем и добавляем метку для названия фильма
             filmi_nimetus_lbl = new Label();
             filmi_nimetus_lbl.Size = new Size(327, 50);
@@ -141,7 +143,7 @@ namespace KinoAB
 
         private void Btn1_Click(object sender, EventArgs e)
         {
-            // Переключить изображение на следующее
+            // Переключаем изображение и получаем данные фильма
             if (posters != null && posters.Count > 0)
             {
                 praegune_indeks++;
@@ -149,40 +151,71 @@ namespace KinoAB
                 {
                     praegune_indeks = 0; // Вернуться к первой картинке, если дошли до конца
                 }
+
                 pictureBox.Image = posters[praegune_indeks];
                 filmi_nimetus_lbl.Text = filmiNimetuss[praegune_indeks];
                 filmiNimetus = filmi_nimetus_lbl.Text;
                 posterPath = Path.Combine(postersDirectory, $"{filmiNimetus}.jpg");
 
+
                 try
                 {
                     conn.Open();
-                    // Запрос для получения ID фильма по названию с использованием параметризированного запроса
+                    // Запрос для получения ID фильма по названию
                     cmd = new SqlCommand("SELECT Id FROM Kinolaud WHERE Filmi_nimetus = @filmiNimetus", conn);
                     cmd.Parameters.AddWithValue("@filmiNimetus", filmiNimetus);
-                    filmiId = cmd.ExecuteScalar().ToString();
+                    filmiId = cmd.ExecuteScalar()?.ToString();
 
-                    // Получаем данные сеанса
+                    // Если ID фильма не найден, выводим ошибку
+                    if (string.IsNullOrEmpty(filmiId))
+                    {
+                        Debug.WriteLine("Ошибка: не найден ID фильма.");
+                        return;
+                    }
+
+                    // Запрос для получения данных сеанса
                     cmd = new SqlCommand("SELECT * FROM seansid WHERE Kinolaud_id = @filmiId", conn);
                     cmd.Parameters.AddWithValue("@filmiId", filmiId);
                     reader = cmd.ExecuteReader();
 
-                    if (reader.Read())
+                    if (reader.Read()) // Если есть хотя бы одна строка
                     {
-                        seanss_start = reader["Start_time"].ToString();
+                        // Чтение значения времени сеанса
+                        if (reader["Start_time"] != DBNull.Value)
+                        {
+                            seanss_start = reader["Start_time"].ToString();
+                            Debug.WriteLine($"Start_time (из базы данных): {seanss_start}");
+                        }
+                        else
+                        {
+                            seanss_start = "Нет данных";
+                            Debug.WriteLine("Start_time в базе данных пустой (NULL).");
+                        }
+                    }
+                    else
+                    {
+                        Debug.WriteLine("Ошибка: не найден сеанс для выбранного фильма.");
+                        MessageBox.Show("Не найдено сеансов для выбранного фильма.");
+                        return;
                     }
                     reader.Close();
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Viga andmete laadimisel andmebaasist: " + ex.Message);
+                    MessageBox.Show("Ошибка при загрузке данных из базы данных: " + ex.Message);
+                    Debug.WriteLine($"Ошибка: {ex.Message}");
                 }
                 finally
                 {
                     conn.Close();
                 }
+
+
             }
         }
+
+
+
 
         private void Btn2_Click(object sender, EventArgs e)
         {

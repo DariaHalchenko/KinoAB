@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Net;
@@ -63,11 +64,18 @@ namespace KinoAB
         // Генерация PDF файла
         private void GeneratePDF()
         {
+            if (string.IsNullOrEmpty(seanss_start))
+            {
+                Debug.WriteLine("Ошибка: seanss_start пустое.");
+                MessageBox.Show("Ошибка: Время сеанса не передано.");
+                return; 
+            }
+
             // Создаем документ PDF
             Document pdfDocument = new Document();
             var page = pdfDocument.Pages.Add();
 
-            // Заголовок
+            // Добавляем информацию о фильме
             page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment($"Filmi: {filmiNimetus}"));
 
             // Добавляем информацию о местах
@@ -88,11 +96,20 @@ namespace KinoAB
 
             // Сохраняем файл
             pdfDocument.Save(pdfFilePath);
+            Debug.WriteLine($"PDF сохранен с временем: {seanss_start}");
         }
+
 
         // Метод для отправки email с вложением (PDF файл)
         private void SendEmail(string saaja_meiliaadress, string subject, string body, string manusfaili_tee)
         {
+            if (string.IsNullOrEmpty(seanss_start))
+            {
+                Debug.WriteLine("Ошибка: Время сеанса не передано в email.");
+                MessageBox.Show("Ошибка: Время сеанса не передано.");
+                return;
+            }
+
             try
             {
                 // Указываем SMTP сервер (например, для Gmail)
@@ -118,11 +135,13 @@ namespace KinoAB
                 smtpClient.Send(mailMessage);
 
                 MessageBox.Show("Pilet edukalt saadetud postkontorisse");
+
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Viga e-kirja saatmisel: " + ex.Message);
             }
         }
+
     }
 }

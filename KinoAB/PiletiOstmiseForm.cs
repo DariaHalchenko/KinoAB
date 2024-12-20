@@ -9,7 +9,7 @@ namespace KinoAB
     public partial class PiletiOstmiseForm : Form
     {
         string seanss_start;
-        string posterFile;  // Полный путь к постеру
+        public string posterFile;  // Полный путь к постеру
         string filmiNimetus;  // Название фильма
 
         Random random = new Random();

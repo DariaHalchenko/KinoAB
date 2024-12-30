@@ -66,39 +66,94 @@ namespace KinoAB
         {
             if (string.IsNullOrEmpty(seanss_start))
             {
-                Debug.WriteLine("Ошибка: seanss_start пустое.");
-                MessageBox.Show("Ошибка: Время сеанса не передано.");
-                return; 
+                Debug.WriteLine("Viga: seanss_start пустое.");
+                MessageBox.Show("Viga: Seansside aega ei edastata");
+                return;
             }
 
             // Создаем документ PDF
             Document pdfDocument = new Document();
             var page = pdfDocument.Pages.Add();
+            page.PageInfo.Margin = new MarginInfo(20, 20, 20, 20); // Устанавливаем отступы
 
-            // Добавляем информацию о фильме
-            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment($"Filmi: {filmiNimetus}"));
-
-            // Добавляем информацию о местах
-            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment($"Kohad: {string.Join(", ", valitudKohad)}"));
-
-            // Добавляем информацию о сеансе
-            page.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment($"Seansi algus: {seanss_start}"));
-
-            // Добавляем постер
-            if (File.Exists(posterFile))
+            foreach (var koht in valitudKohad)
             {
-                Aspose.Pdf.Image image = new Aspose.Pdf.Image
+                // Разделяем ряд и место из "koht"
+                string[] parts = koht.Split('-');
+                string row = parts[0];
+                string seat = parts[1];
+
+                // Создаем заголовок фильма (header)
+                var header = new Aspose.Pdf.Text.TextFragment(filmiNimetus)
                 {
-                    File = posterFile
+                    HorizontalAlignment = Aspose.Pdf.HorizontalAlignment.Center,
+                    Margin = new Aspose.Pdf.MarginInfo(0, 10, 0, 20)
                 };
-                page.Paragraphs.Add(image);
+
+                // Настраиваем свойства TextState
+                header.TextState.Font = Aspose.Pdf.Text.FontRepository.FindFont("Helvetica-Bold");
+                header.TextState.FontSize = 18;
+                header.TextState.ForegroundColor = Aspose.Pdf.Color.DarkBlue;
+
+                // Добавляем заголовок на страницу
+                page.Paragraphs.Add(header);
+
+                // Создаем таблицу для информации
+                var table = new Aspose.Pdf.Table
+                {
+                    ColumnWidths = "200 150", // Первая колонка шире для текста, вторая для картинки
+                    DefaultCellPadding = new MarginInfo(5, 5, 5, 5),
+                    Border = new Aspose.Pdf.BorderInfo(Aspose.Pdf.BorderSide.All, 1.5f, Aspose.Pdf.Color.Red),
+                    DefaultCellBorder = new Aspose.Pdf.BorderInfo(Aspose.Pdf.BorderSide.All, 0.5f, Aspose.Pdf.Color.Gray) // Внутренние границы
+                };
+
+                // Добавляем строки в таблицу
+                Row row1 = table.Rows.Add();
+                row1.Cells.Add("Film:");
+                row1.Cells.Add(filmiNimetus);
+
+                Row row2 = table.Rows.Add();
+                row2.Cells.Add("Kuupäev:");
+                row2.Cells.Add(seanss_start.Split(' ')[0]); // Только дата
+
+                Row row3 = table.Rows.Add();
+                row3.Cells.Add("Aeg:");
+                row3.Cells.Add(seanss_start.Split(' ')[1]); // Только время
+
+                Row row4 = table.Rows.Add();
+                row4.Cells.Add("Rida:");
+                row4.Cells.Add(row);
+
+                Row row5 = table.Rows.Add();
+                row5.Cells.Add("Asukoht:");
+                row5.Cells.Add(seat);
+
+                // Добавляем постер фильма в таблицу (последняя строка)
+                Row posterRow = table.Rows.Add();
+                Cell textCell = posterRow.Cells.Add();
+                textCell.ColSpan = 2; // Объединяем ячейки в одну
+                textCell.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment("")); // Оставляем пустое пространство для постера
+
+                if (File.Exists(posterFile))
+                {
+                    Aspose.Pdf.Image poster = new Aspose.Pdf.Image
+                    {
+                        File = posterFile,
+                        FixWidth = 150,
+                        FixHeight = 200,
+                        HorizontalAlignment = Aspose.Pdf.HorizontalAlignment.Center
+                    };
+                    textCell.Paragraphs.Add(poster);
+                }
+
+                // Добавляем таблицу на страницу
+                page.Paragraphs.Add(table);
             }
 
-            // Сохраняем файл
+            // Сохраняем PDF
             pdfDocument.Save(pdfFilePath);
-            Debug.WriteLine($"PDF сохранен с временем: {seanss_start}");
+            MessageBox.Show("PDF успешно создан!");
         }
-
 
         // Метод для отправки email с вложением (PDF файл)
         private void SendEmail(string saaja_meiliaadress, string subject, string body, string manusfaili_tee)

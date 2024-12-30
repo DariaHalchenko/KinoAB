@@ -82,6 +82,8 @@ namespace KinoAB
             start_time_dtp = new DateTimePicker();
             start_time_dtp.Location = new Point(200, 103);
             start_time_dtp.Size = new Size(200, 30);
+            start_time_dtp.Format = DateTimePickerFormat.Custom;
+            start_time_dtp.CustomFormat = "dd.MM.yyyy HH:mm";
             Controls.Add(start_time_dtp);
 
             // Label - lopp_time_lbl (End time)
@@ -93,10 +95,12 @@ namespace KinoAB
             lopp_time_lbl.Text = "Lõppaeg";
             Controls.Add(lopp_time_lbl);
 
-            // DateTimePicker - lopp_time_dtp (End time)
-            lopp_time_dtp = new DateTimePicker(); // Changed variable name here
+            // DateTimePicker - lopp_time_dtp 
+            lopp_time_dtp = new DateTimePicker(); 
             lopp_time_dtp.Location = new Point(200, 138);
             lopp_time_dtp.Size = new Size(200, 30);
+            lopp_time_dtp.Format = DateTimePickerFormat.Custom;
+            lopp_time_dtp.CustomFormat = "dd.MM.yyyy HH:mm";
             Controls.Add(lopp_time_dtp);
 
             // Button - lisa_btn (Add new record)
